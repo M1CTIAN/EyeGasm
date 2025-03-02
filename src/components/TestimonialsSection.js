@@ -1,35 +1,47 @@
 ﻿import React from 'react';
-import styles from '../app/page.module.css';
+import styles from '../styles/components/testimonials.module.css';
 
 export default function TestimonialsSection() {
     return (
-        <section className={`${styles.section}`} data-scroll-section>
-            <h2 data-scroll data-scroll-speed="1" className={styles.sectionTitle}>
-                What Our <span className={styles.highlight}>Visitors Say</span>
-            </h2>
+        <section id="testimonials" className={styles.testimonialSection} data-scroll-section>
+            <h2 className={styles.sectionTitle}>What People Say</h2>
+            
             <div className={styles.testimonialGrid}>
-                <blockquote className={styles.testimonial} data-scroll data-scroll-speed="1.3">
-                    <div className={styles.testimonialQuote}>"</div>
-                    <p>The visual experience was truly captivating. I couldn't look away! The parallax effects create such a unique sense of depth.</p>
+                <div className={styles.testimonial} data-scroll data-scroll-speed="1">
+                    <div className={styles.testimonialQuote}>&ldquo;</div>
+                    <p>The visual effects and animations on this site are absolutely mind-blowing. I&apos;ve never experienced anything quite like this before!</p>
                     <div className={styles.testimonialAuthor}>
-                        <div className={styles.testimonialAvatar}>AS</div>
+                        <div className={styles.testimonialAvatar}>JD</div>
                         <div>
-                            <h4>Alex Smith</h4>
-                            <p>Web Designer</p>
+                            <h4>Jane Doe</h4>
+                            <p>Digital Artist</p>
                         </div>
                     </div>
-                </blockquote>
-                <blockquote className={styles.testimonial} data-scroll data-scroll-speed="1.7">
-                    <div className={styles.testimonialQuote}>"</div>
-                    <p>These parallax effects create such a unique browsing experience. I've never seen a website that feels so alive and interactive.</p>
+                </div>
+                
+                <div className={styles.testimonial} data-scroll data-scroll-speed="1.2">
+                    <div className={styles.testimonialQuote}>&ldquo;</div>
+                    <p>This website sets a new standard for immersive web design. It&apos;s not just visually stunning, but also incredibly smooth to navigate.</p>
                     <div className={styles.testimonialAuthor}>
-                        <div className={styles.testimonialAvatar}>JJ</div>
+                        <div className={styles.testimonialAvatar}>JS</div>
                         <div>
-                            <h4>Jamie Johnson</h4>
-                            <p>Creative Director</p>
+                            <h4>John Smith</h4>
+                            <p>UI/UX Designer</p>
                         </div>
                     </div>
-                </blockquote>
+                </div>
+                
+                <div className={styles.testimonial} data-scroll data-scroll-speed="1.4">
+                    <div className={styles.testimonialQuote}>&ldquo;</div>
+                    <p>The attention to detail in the animations and transitions is remarkable. Every scroll reveals something new and exciting.</p>
+                    <div className={styles.testimonialAuthor}>
+                        <div className={styles.testimonialAvatar}>AL</div>
+                        <div>
+                            <h4>Alex Lee</h4>
+                            <p>Web Developer</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     );

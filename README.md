@@ -1,7 +1,6 @@
-# Updated README.md for EyeGasm Project
-
-````markdown
 # EYEGASM
+
+![EYEGASM](https://media.tenor.com/UIOAoI_h-XsAAAAM/sleep-tom-and-jerry.gif)
 
 ## Visual Experiences That Captivate Your Senses
 
@@ -31,7 +30,7 @@ EYEGASM is a modern, visually-stunning web experience built with Next.js, levera
    git clone https://github.com/yourusername/eyegasm.git
    cd eyegasm
    ```
-````
+
 
 2. **Install dependencies**
 

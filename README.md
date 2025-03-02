@@ -3,8 +3,6 @@
 ````markdown
 # EYEGASM
 
-![EYEGASM](public/hero-preview.png)
-
 ## Visual Experiences That Captivate Your Senses
 
 EYEGASM is a modern, visually-stunning web experience built with Next.js, leveraging smooth scrolling animations and parallax effects to create an immersive user experience.

@@ -1,4 +1,11 @@
 @import "tailwindcss";
+/* Import locomotive-scroll styles */
+@import 'locomotive-scroll/dist/locomotive-scroll.css';
+@import '../styles/main.css';
+
+/* Add these font imports at the top of the file */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @theme {
   --font-sans: var(--font-geist-sans);
@@ -8,6 +15,30 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Main colors */
+  --color-bg-primary: #1a2a3a;
+  /* Deep navy blue */
+  --color-bg-secondary: #243447;
+  /* Slightly lighter blue */
+  --color-text: #e0e7ee;
+  /* Soft off-white */
+  --color-text-muted: #a2b2c3;
+  /* Muted blue-gray */
+
+  /* Accent colors */
+  --color-accent: #8eb8a7;
+  /* Sage green */
+  --color-accent-hover: #a2cdbd;
+  /* Lighter sage */
+  --color-accent-secondary: #d4a5a5;
+  /* Dusty rose */
+
+  /* UI elements */
+  --color-card-bg: rgba(32, 48, 71, 0.7);
+  /* Transparent card background */
+  --color-shadow: rgba(0, 0, 0, 0.15);
+  /* Soft shadows */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,8 +48,28 @@
   }
 }
 
+/* Global styles */
+html.has-scroll-smooth {
+  overflow: hidden;
+}
+
+html.has-scroll-dragging {
+  user-select: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Move data-scroll related styles to global CSS */
+[data-scroll] {
+  will-change: transform;
+}
+
+/* Any app-specific global styles can stay here */

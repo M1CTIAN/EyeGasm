@@ -1,101 +1,108 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useEffect, useRef, useState } from 'react';
+import styles from './page.module.css';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+// Import all components
+import {
+    LoadingScreen,
+    HeroSection,
+    ParallaxSection,
+    FeaturesSection,
+    TestimonialsSection,
+    ContactSection,
+    Footer
+} from '../components';
+
+export default function Page() {
+    const scrollRef = useRef(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate loading time and then hide the loader
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 2500); // 2.5 seconds loading screen
+
+        // Dynamically import Locomotive Scroll to avoid SSR issues
+        const initLocomotiveScroll = async () => {
+            const LocomotiveScroll = (await import('locomotive-scroll')).default;
+
+            const scroll = new LocomotiveScroll({
+                el: scrollRef.current,
+                smooth: true,
+                multiplier: 1,
+                lerp: 0.07, // Linear interpolation, lower = smoother
+                smartphone: {
+                    smooth: true
+                },
+                tablet: {
+                    smooth: true
+                }
+            });
+
+            // Update scroll on window resize
+            window.addEventListener('resize', () => {
+                scroll.update();
+            });
+
+            // Clean up
+            return () => {
+                scroll.destroy();
+                window.removeEventListener('resize', scroll.update);
+            };
+        };
+
+        // Only init scroll after loading is complete
+        if (!loading) {
+            initLocomotiveScroll();
+        }
+
+        return () => clearTimeout(timer);
+    }, [loading]);
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
+    return (
+        <div className={styles.container} data-scroll-container ref={scrollRef}>
+            <HeroSection />
+
+            <ParallaxSection
+                id="gallery"
+                backgroundImage="/Fronalpstock_big.jpg"
+                title="Visual Storytelling"
+                subtitle="Where imagery meets imagination"
+                scrollSpeed="-4"
+                titleScrollSpeed="2"
+                subtitleScrollSpeed="1"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+            <FeaturesSection />
+
+            <ParallaxSection
+                backgroundImage="/Workers-Big-Ben-London.webp"
+                title="Immersive Experiences"
+                subtitle="Scroll to unlock new perspectives"
+                scrollSpeed="-2"
+                titleScrollSpeed="3"
+                subtitleScrollSpeed="1.5"
+            />
+
+
+            <ParallaxSection
+                backgroundImage="/NEO_elbrus_big.jpg"
+                title="Creative Visuals"
+                subtitle="Pushing the boundaries of web design"
+                scrollSpeed="-3"
+                titleScrollSpeed="2"
+                subtitleScrollSpeed="1"
+            />
+
+            {/* <ContactSection /> */}
+
+            <Footer />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }

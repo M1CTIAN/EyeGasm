@@ -1,0 +1,71 @@
+@import './theme.css';
+@import './animations.css';
+
+/* Import components CSS via JavaScript modules instead */
+
+/* General utility classes */
+.text-center {
+  text-align: center;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.bg-gradient {
+  background: linear-gradient(to right, var(--color-accent), var(--color-accent-secondary));
+}
+
+.text-gradient {
+  background: linear-gradient(45deg, var(--color-accent), var(--color-accent-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .md\:flex-col {
+    flex-direction: column;
+  }
+  
+  .md\:text-center {
+    text-align: center;
+  }
+}

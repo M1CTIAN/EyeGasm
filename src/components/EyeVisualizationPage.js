@@ -960,7 +960,7 @@ const EyeVisualization = ({ className, style }) => {
             rendererRef.current.render(sceneRef.current, cameraRef.current);
             requestRef.current = requestAnimationFrame(animate);
         };
-
+        
         // Handling scroll wheel
         const handleWheel = (event) => {
             targetScrollYRef.current += event.deltaY * 0.01;

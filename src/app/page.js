@@ -5,6 +5,7 @@ import styles from './page.module.css';
 
 // Import all components
 import {
+    EyeVisualizationPage,
     LoadingScreen,
     HeroSection,
     ParallaxSection,
@@ -68,6 +69,11 @@ export default function Page() {
     return (
         <div className={styles.container} data-scroll-container ref={scrollRef}>
             <HeroSection />
+
+            {/* Add the EyeVisualizationPage component here */}
+            <div data-scroll-section>
+                <EyeVisualizationPage />
+            </div>
 
             <ParallaxSection
                 id="gallery"

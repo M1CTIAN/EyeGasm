@@ -964,7 +964,7 @@ const EyeVisualization = ({ className, style }) => {
         // Handling scroll wheel
         const handleWheel = (event) => {
             targetScrollYRef.current += event.deltaY * 0.01;
-            // Clamp scroll value between 0 and 100
+            // Clamp scroll value between 0 and 100 
             targetScrollYRef.current = Math.max(0, Math.min(100, targetScrollYRef.current));
         };
 

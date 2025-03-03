@@ -41,7 +41,7 @@ export default function Page() {
                     smooth: true
                 }
             });
-
+ 
             // Update scroll on window resize
             window.addEventListener('resize', () => {
                 scroll.update();

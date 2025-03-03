@@ -27,7 +27,7 @@ EYEGASM is a modern, visually-stunning web experience built with Next.js, levera
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/eyegasm.git
+   git clone https://github.com/M1CTIAN/eyegasm.git
    cd eyegasm
    ```
 

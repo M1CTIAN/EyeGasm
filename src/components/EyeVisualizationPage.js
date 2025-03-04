@@ -108,13 +108,13 @@ const EyeVisualization = ({ className, style }) => {
             sceneRef.current.add(eyeGroup);
             eyeGroupRef.current = eyeGroup;
 
-            // Base iris disc - darker base
+            // Base iris disc - darker base with no color
             const irisGeometry = new THREE.CircleGeometry(5, 64);
             const irisMaterial = new THREE.MeshStandardMaterial({
-                color: 0x090909,
+                color: 0x050505, // Nearly black base
                 side: THREE.DoubleSide,
-                roughness: 0.8,
-                metalness: 0.2,
+                roughness: 0.9,
+                metalness: 0.1,
                 emissive: 0x000000,
                 emissiveIntensity: 0.0
             });
@@ -122,18 +122,14 @@ const EyeVisualization = ({ className, style }) => {
             eyeGroup.add(iris);
             irisRef.current = iris;
 
-            // Add filled color zones first
-            createColorZones(eyeGroup);
-
-            // Create a group for all the fibers that will overlay the color zones
+            // Create a group for all the fibers that will define the color pattern
             const fibersGroup = new THREE.Group();
             eyeGroup.add(fibersGroup);
             fibersGroupRef.current = fibersGroup;
 
-            // Add uniformly distributed fibers
-            createUniformFibers(fibersGroup, 1.0, 5.0);
+            // Add uniformly distributed fibers with more of them to compensate for removed color zones
+            createUniformFibers(fibersGroup, 1.0, 5.0, 1800); // Increased fiber count
 
-            // Rest of the eye components (pupil, particles, etc)
             // Pupil (more natural with depth)
             const pupilGeometry = new THREE.CircleGeometry(1.0, 64);
             const pupilMaterial = new THREE.MeshStandardMaterial({
@@ -175,7 +171,7 @@ const EyeVisualization = ({ className, style }) => {
             eyeGroup.add(limbalRing);
 
             // Add small precise floating particles
-            const particles = createPreciseFloatingParticles(3000, 1.0, 5.0);
+            const particles = createPreciseFloatingParticles(4000, 1.0, 5.0); // Increased particle count
             eyeGroup.add(particles);
 
             // Add subtle reflection highlight on pupil
@@ -459,38 +455,38 @@ const EyeVisualization = ({ className, style }) => {
             return new THREE.Color(currentZone.emissive);
         };
 
-        // Create uniformly distributed fibers to overlay the color zones
-        const createUniformFibers = (parent, innerRadius, outerRadius) => {
-            // Define color bands based on distance from center
+        // Create uniformly distributed fibers to define the color pattern
+        const createUniformFibers = (parent, innerRadius, outerRadius, fiberCount = 900) => {
+            // Define color bands based on distance from center - using more vibrant colors
             const colorBands = [
                 {
                     startRadius: 1.0,
                     endRadius: 1.7,
-                    color: new THREE.Color(0xff5555), // Red
-                    emissive: new THREE.Color(0xdd2200)
+                    color: new THREE.Color(0xff3333), // Bright red
+                    emissive: new THREE.Color(0xdd1100) // Red emissive
                 },
                 {
                     startRadius: 1.7,
                     endRadius: 2.3,
-                    color: new THREE.Color(0x77ff77), // Green
-                    emissive: new THREE.Color(0x44cc44)
+                    color: new THREE.Color(0x55ff55), // Bright green
+                    emissive: new THREE.Color(0x33cc33) // Green emissive
                 },
                 {
                     startRadius: 2.3,
                     endRadius: 3.3,
-                    color: new THREE.Color(0x55eeff), // Cyan  
-                    emissive: new THREE.Color(0x00aadd)
+                    color: new THREE.Color(0x33ddff), // Bright cyan
+                    emissive: new THREE.Color(0x00aadd) // Cyan emissive
                 },
                 {
                     startRadius: 3.3,
                     endRadius: 5.0,
-                    color: new THREE.Color(0xbb55ff), // Violet
-                    emissive: new THREE.Color(0x7711ee)
+                    color: new THREE.Color(0xaa55ff), // Bright violet
+                    emissive: new THREE.Color(0x7722ee) // Violet emissive
                 }
             ];
 
             // Total fibers to create
-            const totalFibers = 900;
+            const totalFibers = fiberCount;
             const angularStep = (Math.PI * 2) / totalFibers;
 
             // Create the fibers with organic distribution
@@ -555,8 +551,27 @@ const EyeVisualization = ({ className, style }) => {
                 // Create a smooth curve through the points
                 const curve = new THREE.CatmullRomCurve3(curvePoints);
 
-                // Variable fiber thickness - make them thinner since they're just accents now
-                const thickness = 0.003 + 0.005 * Math.sin(Math.PI * 0.5 * (i % 4) / 4);
+                // Variable fiber thickness - make them thicker for more visibility
+                const baseThickness = 0.006 + Math.random() * 0.004;
+                const pattern = Math.floor(i % 6);
+                let thickness;
+
+                switch (pattern) {
+                    case 0:
+                        thickness = baseThickness * 1.4;
+                        break;
+                    case 1:
+                        thickness = baseThickness * 0.7;
+                        break;
+                    case 2:
+                        thickness = baseThickness * 1.2;
+                        break;
+                    case 3:
+                        thickness = baseThickness * 0.9;
+                        break;
+                    default:
+                        thickness = baseThickness;
+                }
 
                 // Create tube geometry along the curve
                 const tubeGeometry = new THREE.TubeGeometry(
@@ -571,7 +586,7 @@ const EyeVisualization = ({ className, style }) => {
                 const positions = tubeGeometry.getAttribute('position');
                 const colors = new Float32Array(positions.count * 3);
 
-                // Add color attribute to the geometry
+                // Add color attribute to the geometry - calculate once per segment
                 for (let j = 0; j < positions.count; j++) {
                     const x = positions.getX(j);
                     const y = positions.getY(j);
@@ -580,7 +595,7 @@ const EyeVisualization = ({ className, style }) => {
                     const distanceFromCenter = Math.sqrt(x * x + y * y);
 
                     // Find colors to interpolate between based on distance
-                    let color1, color2, emissive1, emissive2;
+                    let color1, color2;
                     let t = 0; // Interpolation factor
 
                     // Find the band this point is in, or the two bands to blend
@@ -588,16 +603,12 @@ const EyeVisualization = ({ className, style }) => {
                         // Before the first band (close to pupil), just use the first band color
                         color1 = colorBands[0].color;
                         color2 = colorBands[0].color;
-                        emissive1 = colorBands[0].emissive;
-                        emissive2 = colorBands[0].emissive;
                         t = 0;
                     } else if (distanceFromCenter >= colorBands[colorBands.length - 1].endRadius) {
                         // Beyond the last band, just use the last band color
                         const lastBand = colorBands[colorBands.length - 1];
                         color1 = lastBand.color;
                         color2 = lastBand.color;
-                        emissive1 = lastBand.emissive;
-                        emissive2 = lastBand.emissive;
                         t = 1;
                     } else {
                         // Find which two bands to blend between
@@ -607,7 +618,6 @@ const EyeVisualization = ({ className, style }) => {
                             if (distanceFromCenter >= band.startRadius && distanceFromCenter <= band.endRadius) {
                                 // Within this band
                                 color1 = band.color;
-                                emissive1 = band.emissive;
 
                                 // Create transition gradient within the band itself
                                 const transitionWidth = band.endRadius - band.startRadius;
@@ -617,13 +627,11 @@ const EyeVisualization = ({ className, style }) => {
                                 if (k < colorBands.length - 1 && positionInBand > transitionPoint) {
                                     // Start blending with next band
                                     color2 = colorBands[k + 1].color;
-                                    emissive2 = colorBands[k + 1].emissive;
                                     // Calculate transition factor (0-1) for the last 30% of this band
                                     t = (positionInBand - transitionPoint) / (transitionWidth - transitionPoint);
                                 } else {
                                     // No transition yet, stay within current band
                                     color2 = band.color;
-                                    emissive2 = band.emissive;
                                     t = 0;
                                 }
                                 break;
@@ -637,8 +645,6 @@ const EyeVisualization = ({ className, style }) => {
                                 // In transition zone between bands
                                 color1 = band.color;
                                 color2 = colorBands[k + 1].color;
-                                emissive1 = band.emissive;
-                                emissive2 = colorBands[k + 1].emissive;
 
                                 // Calculate transition factor (0-1)
                                 const transitionWidth = colorBands[k + 1].startRadius - band.endRadius;
@@ -665,21 +671,66 @@ const EyeVisualization = ({ className, style }) => {
                 // Add the color attribute to the geometry
                 tubeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-                // Create material with vertex colors
+                // Create material with vertex colors - CRITICAL FIX - lower emissive intensity
                 const material = new THREE.MeshStandardMaterial({
                     vertexColors: true,
                     roughness: 0.3,
-                    metalness: 0.7,
-                    emissive: 0xffffff, // Modulated by vertex colors
-                    emissiveIntensity: 0.7,
+                    metalness: 0.6,
+                    emissive: 0x888888, // Much lower emissive base to let vertex colors show through
+                    emissiveIntensity: 0.4, // Lower intensity allows colors to be more visible
                     transparent: true,
-                    opacity: 0.9
+                    opacity: 0.95,
+                    side: THREE.DoubleSide
                 });
 
                 const tube = new THREE.Mesh(tubeGeometry, material);
                 parent.add(tube);
 
-                // Rest of your code for particles remains the same...
+                // Add particles at the ends of threads
+                if (Math.random() < 0.4) { // 40% chance for particles at thread ends
+                    const particlePosition = curvePoints[curvePoints.length - 1];
+                    const distanceFromCenter = Math.sqrt(
+                        particlePosition.x * particlePosition.x +
+                        particlePosition.y * particlePosition.y
+                    );
+                    
+                    // Find the color band for this distance
+                    let particleColor;
+                    for (const band of colorBands) {
+                        if (distanceFromCenter >= band.startRadius && distanceFromCenter <= band.endRadius) {
+                            particleColor = band.color.clone();
+                            break;
+                        }
+                    }
+                    
+                    if (particleColor) {
+                        // Create particle cluster at the end of the fiber
+                        const particleCount = 2 + Math.floor(Math.random() * 3);
+                        for (let p = 0; p < particleCount; p++) {
+                            const particleGeometry = new THREE.SphereGeometry(0.01 + Math.random() * 0.02, 8, 8);
+                            const particleMaterial = new THREE.MeshStandardMaterial({
+                                color: particleColor,
+                                emissive: particleColor,
+                                emissiveIntensity: 0.6,
+                                roughness: 0.2,
+                                metalness: 0.9,
+                                transparent: true,
+                                opacity: 0.9
+                            });
+                            
+                            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                            
+                            // Position with more spread from the end of the fiber
+                            particle.position.set(
+                                particlePosition.x + (Math.random() - 0.5) * 0.1,
+                                particlePosition.y + (Math.random() - 0.5) * 0.1,
+                                particlePosition.z + (Math.random() - 0.5) * 0.05
+                            );
+                            
+                            parent.add(particle);
+                        }
+                    }
+                }
             }
         };
 
@@ -880,10 +931,10 @@ const EyeVisualization = ({ className, style }) => {
                         const pulseScale = 1 + Math.sin(pulsePhase) * 0.03;
                         fiber.scale.set(pulseScale, pulseScale, 1);
 
-                        // Coordinated shimmer effect
+                        // Coordinated shimmer effect - CRITICAL FIX - lower emissive intensity
                         if (fiber.material && fiber.material.opacity) {
                             fiber.material.opacity = 0.7 + Math.sin(pulsePhase) * 0.2;
-                            fiber.material.emissiveIntensity = 0.5 + Math.sin(pulsePhase) * 0.3;
+                            fiber.material.emissiveIntensity = 0.3 + Math.sin(pulsePhase) * 0.15; // Lower emissive intensity
                             fiber.material.needsUpdate = true;
                         }
                     }
@@ -960,7 +1011,7 @@ const EyeVisualization = ({ className, style }) => {
             rendererRef.current.render(sceneRef.current, cameraRef.current);
             requestRef.current = requestAnimationFrame(animate);
         };
-        
+
         // Handling scroll wheel
         const handleWheel = (event) => {
             targetScrollYRef.current += event.deltaY * 0.01;

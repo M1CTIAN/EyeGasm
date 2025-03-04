@@ -102,7 +102,7 @@ const EyeVisualization = ({ className, style }) => {
             renderer.render(scene, camera);
         };
 
-        // Create realistic eye with detailed iris fibers and filled color areas
+        // Modified createRealisticEye function to remove the limbal ring
         const createRealisticEye = () => {
             const eyeGroup = new THREE.Group();
             sceneRef.current.add(eyeGroup);
@@ -127,8 +127,8 @@ const EyeVisualization = ({ className, style }) => {
             eyeGroup.add(fibersGroup);
             fibersGroupRef.current = fibersGroup;
 
-            // Add uniformly distributed fibers with more of them to compensate for removed color zones
-            createUniformFibers(fibersGroup, 1.0, 5.0, 1800); // Increased fiber count
+            // Add uniformly distributed fibers with thicker strands
+            createUniformFibers(fibersGroup, 1.0, 5.0, 500); // Reduced count, increased thickness
 
             // Pupil (more natural with depth)
             const pupilGeometry = new THREE.CircleGeometry(1.0, 64);
@@ -156,22 +156,10 @@ const EyeVisualization = ({ className, style }) => {
             pupilRing.position.z = 0.04;
             eyeGroup.add(pupilRing);
 
-            // Add limbal ring (the darker ring around the iris that makes it look more natural)
-            const limbalRingGeometry = new THREE.RingGeometry(4.8, 5.0, 64);
-            const limbalRingMaterial = new THREE.MeshStandardMaterial({
-                color: 0x1a0e03,
-                emissive: 0x080401,
-                emissiveIntensity: 0.1,
-                transparent: true,
-                opacity: 0.8,
-                side: THREE.DoubleSide
-            });
-            const limbalRing = new THREE.Mesh(limbalRingGeometry, limbalRingMaterial);
-            limbalRing.position.z = 0.06;
-            eyeGroup.add(limbalRing);
+            // REMOVED: Limbal ring (the darker ring around the iris)
 
             // Add small precise floating particles
-            const particles = createPreciseFloatingParticles(4000, 1.0, 5.0); // Increased particle count
+            const particles = createPreciseFloatingParticles(4000, 1.0, 5.0);
             eyeGroup.add(particles);
 
             // Add subtle reflection highlight on pupil
@@ -197,262 +185,6 @@ const EyeVisualization = ({ className, style }) => {
             });
             const scleraGlow = new THREE.Mesh(scleraGlowGeometry, scleraGlowMaterial);
             eyeGroup.add(scleraGlow);
-
-            // Create glowing rings that highlight the color bands
-            createColorBandHighlights(eyeGroup);
-        };
-
-        // Create filled color zones in the iris
-        const createColorZones = (parent) => {
-            // Define the color zones with their radii - added green transition zone
-            const colorZones = [
-                {
-                    startRadius: 1.0,
-                    endRadius: 1.7,
-                    color: 0xff3333, // Red
-                    emissive: 0xcc1100,
-                    emissiveIntensity: 0.7
-                },
-                {
-                    startRadius: 1.7,
-                    endRadius: 2.3,
-                    color: 0x55dd55, // Green transition zone
-                    emissive: 0x33aa33,
-                    emissiveIntensity: 0.65
-                },
-                {
-                    startRadius: 2.3,
-                    endRadius: 3.3,
-                    color: 0x00ddff, // Cyan
-                    emissive: 0x0099cc,
-                    emissiveIntensity: 0.6
-                },
-                {
-                    startRadius: 3.3,
-                    endRadius: 5.0,
-                    color: 0xaa33ff, // Violet
-                    emissive: 0x6600dd,
-                    emissiveIntensity: 0.5
-                }
-            ];
-
-            // Create filled ring meshes for each zone
-            colorZones.forEach(zone => {
-                const ringGeometry = new THREE.RingGeometry(zone.startRadius, zone.endRadius, 128, 8);
-                const ringMaterial = new THREE.MeshStandardMaterial({
-                    color: zone.color,
-                    emissive: zone.emissive,
-                    emissiveIntensity: zone.emissiveIntensity,
-                    transparent: true,
-                    opacity: 0.85,
-                    side: THREE.DoubleSide,
-                    roughness: 0.4,
-                    metalness: 0.6
-                });
-
-                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-                // Place slightly above the base to ensure visibility
-                ring.position.z = 0.01;
-                parent.add(ring);
-
-                // Add glowing overlay for more luminosity
-                const glowGeometry = new THREE.RingGeometry(zone.startRadius, zone.endRadius, 128, 1);
-                const glowMaterial = new THREE.MeshBasicMaterial({
-                    color: zone.color,
-                    transparent: true,
-                    opacity: 0.3,
-                    side: THREE.DoubleSide,
-                    blending: THREE.AdditiveBlending
-                });
-
-                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-                glow.position.z = 0.02;
-                parent.add(glow);
-
-                // Add texture overlay to break up the solid color look
-                addTexturedOverlay(parent, zone);
-            });
-        };
-
-        // Add textured overlay to make the solid colors more interesting
-        const addTexturedOverlay = (parent, zone) => {
-            // Create a procedural texture using ShaderMaterial
-            const segments = 64;
-            const rings = 8;
-            const geometry = new THREE.RingGeometry(zone.startRadius, zone.endRadius, segments, rings);
-
-            // Create a custom material with noise pattern and gradient transition
-            const material = new THREE.ShaderMaterial({
-                uniforms: {
-                    color: { value: new THREE.Color(zone.color) },
-                    emissiveColor: { value: new THREE.Color(zone.emissive) },
-                    time: { value: 0 },
-                    radius: { value: zone.startRadius },
-                    thickness: { value: zone.endRadius - zone.startRadius },
-                    transitionStart: { value: 0.7 }, // Start transition at 70% of the band
-                    nextColor: { value: getNextZoneColor(zone) }, // Get next zone color for transition
-                    nextEmissive: { value: getNextZoneEmissive(zone) } // Get next zone emissive for transition
-                },
-                vertexShader: `
-                    varying vec2 vUv;
-                    varying float vRadius;
-                    
-                    void main() {
-                        vUv = uv;
-                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                        vRadius = length(position.xy);
-                        gl_Position = projectionMatrix * mvPosition;
-                    }
-                `,
-                fragmentShader: `
-                    uniform vec3 color;
-                    uniform vec3 emissiveColor;
-                    uniform vec3 nextColor;
-                    uniform vec3 nextEmissive;
-                    uniform float time;
-                    uniform float radius;
-                    uniform float thickness;
-                    uniform float transitionStart;
-                    
-                    varying vec2 vUv;
-                    varying float vRadius;
-                    
-                    // Simple noise function
-                    float noise(vec2 p) {
-                        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
-                    }
-                    
-                    void main() {
-                        // Calculate normalized radius (0-1 across the ring)
-                        float normRadius = (vRadius - radius) / thickness;
-                        
-                        // Create texture variation
-                        vec2 pos = vec2(vUv.x * 20.0, vUv.y * 20.0);
-                        float n = noise(pos + time * 0.05);
-                        
-                        // Layer multiple noise frequencies
-                        float n2 = noise(pos * 2.0 + time * 0.1) * 0.5;
-                        float n3 = noise(pos * 4.0 + time * 0.2) * 0.25;
-                        
-                        float noiseVal = n + n2 + n3;
-                        
-                        // Gradient transition
-                        vec3 baseColor = color;
-                        vec3 baseEmissive = emissiveColor;
-                        
-                        if (normRadius > transitionStart) {
-                            // Calculate transition factor
-                            float t = (normRadius - transitionStart) / (1.0 - transitionStart);
-                            
-                            // Smooth step for smoother blend
-                            t = smoothstep(0.0, 1.0, t);
-                            
-                            // Interpolate color
-                            baseColor = mix(color, nextColor, t);
-                            baseEmissive = mix(emissiveColor, nextEmissive, t);
-                        }
-                        
-                        // Apply noise variation to color
-                        vec3 finalColor = baseColor * (0.9 + 0.2 * noiseVal);
-                        vec3 finalEmissive = baseEmissive * (0.9 + 0.2 * noiseVal);
-                        
-                        // Emission and opacity based on noise
-                        float alpha = smoothstep(0.1, 0.9, noiseVal) * 0.35;
-                        
-                        // Add pulsing over time
-                        alpha *= (0.8 + 0.2 * sin(time * 0.5 + vRadius * 5.0));
-                        
-                        gl_FragColor = vec4(finalColor, alpha);
-                        
-                        // Add emission for glow effect (would be used if we had custom blending)
-                        // This doesn't actually work without a custom fragment output, but conceptually shows emission
-                        // gl_FragColor += vec4(finalEmissive * alpha * 0.5, 0.0);
-                    }
-                `,
-                transparent: true,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-
-            const overlay = new THREE.Mesh(geometry, material);
-            overlay.position.z = 0.03;
-            parent.add(overlay);
-
-            // Store the material so we can update it in the animation loop
-            if (!materialRefs.current) materialRefs.current = [];
-            materialRefs.current.push(material);
-        };
-
-        // Helper function to get the next zone's color for transitions
-        const getNextZoneColor = (currentZone) => {
-            const colorZones = [
-                {
-                    startRadius: 1.0,
-                    endRadius: 1.7,
-                    color: 0xff3333 // Red
-                },
-                {
-                    startRadius: 1.7,
-                    endRadius: 2.3,
-                    color: 0x55dd55 // Green
-                },
-                {
-                    startRadius: 2.3,
-                    endRadius: 3.3,
-                    color: 0x00ddff // Cyan
-                },
-                {
-                    startRadius: 3.3,
-                    endRadius: 5.0,
-                    color: 0xaa33ff // Violet
-                }
-            ];
-
-            for (let i = 0; i < colorZones.length - 1; i++) {
-                if (Math.abs(colorZones[i].startRadius - currentZone.startRadius) < 0.01 &&
-                    Math.abs(colorZones[i].endRadius - currentZone.endRadius) < 0.01) {
-                    return new THREE.Color(colorZones[i + 1].color);
-                }
-            }
-
-            // Return the same color if no next zone (last zone)
-            return new THREE.Color(currentZone.color);
-        };
-
-        // Helper function to get the next zone's emissive for transitions
-        const getNextZoneEmissive = (currentZone) => {
-            const colorZones = [
-                {
-                    startRadius: 1.0,
-                    endRadius: 1.7,
-                    emissive: 0xcc1100 // Red
-                },
-                {
-                    startRadius: 1.7,
-                    endRadius: 2.3,
-                    emissive: 0x33aa33 // Green
-                },
-                {
-                    startRadius: 2.3,
-                    endRadius: 3.3,
-                    emissive: 0x0099cc // Cyan
-                },
-                {
-                    startRadius: 3.3,
-                    endRadius: 5.0,
-                    emissive: 0x6600dd // Violet
-                }
-            ];
-
-            for (let i = 0; i < colorZones.length - 1; i++) {
-                if (Math.abs(colorZones[i].startRadius - currentZone.startRadius) < 0.01 &&
-                    Math.abs(colorZones[i].endRadius - currentZone.endRadius) < 0.01) {
-                    return new THREE.Color(colorZones[i + 1].emissive);
-                }
-            }
-
-            // Return the same emissive if no next zone (last zone)
-            return new THREE.Color(currentZone.emissive);
         };
 
         // Create uniformly distributed fibers to define the color pattern
@@ -558,16 +290,16 @@ const EyeVisualization = ({ className, style }) => {
 
                 switch (pattern) {
                     case 0:
-                        thickness = baseThickness * 1.4;
+                        thickness = baseThickness * 1.6;
                         break;
                     case 1:
-                        thickness = baseThickness * 0.7;
+                        thickness = baseThickness * 0.9;
                         break;
                     case 2:
-                        thickness = baseThickness * 1.2;
+                        thickness = baseThickness * 1.4;
                         break;
                     case 3:
-                        thickness = baseThickness * 0.9;
+                        thickness = baseThickness * 1.1;
                         break;
                     default:
                         thickness = baseThickness;
@@ -693,7 +425,7 @@ const EyeVisualization = ({ className, style }) => {
                         particlePosition.x * particlePosition.x +
                         particlePosition.y * particlePosition.y
                     );
-                    
+
                     // Find the color band for this distance
                     let particleColor;
                     for (const band of colorBands) {
@@ -702,7 +434,7 @@ const EyeVisualization = ({ className, style }) => {
                             break;
                         }
                     }
-                    
+
                     if (particleColor) {
                         // Create particle cluster at the end of the fiber
                         const particleCount = 2 + Math.floor(Math.random() * 3);
@@ -717,16 +449,16 @@ const EyeVisualization = ({ className, style }) => {
                                 transparent: true,
                                 opacity: 0.9
                             });
-                            
+
                             const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-                            
+
                             // Position with more spread from the end of the fiber
                             particle.position.set(
                                 particlePosition.x + (Math.random() - 0.5) * 0.1,
                                 particlePosition.y + (Math.random() - 0.5) * 0.1,
                                 particlePosition.z + (Math.random() - 0.5) * 0.05
                             );
-                            
+
                             parent.add(particle);
                         }
                     }
@@ -842,57 +574,6 @@ const EyeVisualization = ({ className, style }) => {
             });
 
             return new THREE.Points(particlesGeometry, particlesMaterial);
-        };
-
-        // Create glowing rings that highlight the color bands
-        const createColorBandHighlights = (eyeGroup) => {
-            // Highlight rings at color transition boundaries
-            const boundaries = [1.7, 2.3, 3.3]; // Where the color bands change
-
-            // Red to Green boundary
-            const redGreenGeometry = new THREE.RingGeometry(1.68, 1.72, 64);
-            const redGreenMaterial = new THREE.MeshStandardMaterial({
-                color: 0xffcc66,
-                emissive: 0xff9933,
-                emissiveIntensity: 0.7,
-                transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-            const redGreenRing = new THREE.Mesh(redGreenGeometry, redGreenMaterial);
-            redGreenRing.position.z = 0.02;
-            eyeGroup.add(redGreenRing);
-
-            // Green to Cyan boundary
-            const greenCyanGeometry = new THREE.RingGeometry(2.28, 2.32, 64);
-            const greenCyanMaterial = new THREE.MeshStandardMaterial({
-                color: 0x66ffcc,
-                emissive: 0x33ccaa,
-                emissiveIntensity: 0.7,
-                transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-            const greenCyanRing = new THREE.Mesh(greenCyanGeometry, greenCyanMaterial);
-            greenCyanRing.position.z = 0.02;
-            eyeGroup.add(greenCyanRing);
-
-            // Cyan to Violet boundary
-            const cyanVioletGeometry = new THREE.RingGeometry(3.28, 3.32, 64);
-            const cyanVioletMaterial = new THREE.MeshStandardMaterial({
-                color: 0x77bbff,
-                emissive: 0x3366ff,
-                emissiveIntensity: 7,
-                transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-            const cyanVioletRing = new THREE.Mesh(cyanVioletGeometry, cyanVioletMaterial);
-            cyanVioletRing.position.z = 0.02;
-            eyeGroup.add(cyanVioletRing);
         };
 
         // Animation loop

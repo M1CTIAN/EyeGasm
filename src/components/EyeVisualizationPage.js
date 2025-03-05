@@ -194,26 +194,26 @@ const EyeVisualization = ({ className, style }) => {
                 {
                     startRadius: 1.0,
                     endRadius: 1.7,
-                    color: new THREE.Color(0xff3333), // Bright red
-                    emissive: new THREE.Color(0xdd1100) // Red emissive
+                    color: new THREE.Color(0xff0000), // Pure, saturated red
+                    emissive: new THREE.Color(0xcc0000) // Deep red emissive
                 },
                 {
                     startRadius: 1.7,
                     endRadius: 2.3,
-                    color: new THREE.Color(0x55ff55), // Bright green
-                    emissive: new THREE.Color(0x33cc33) // Green emissive
+                    color: new THREE.Color(0x00ff00), // Pure, saturated green
+                    emissive: new THREE.Color(0x00cc00) // Deep green emissive
                 },
                 {
                     startRadius: 2.3,
                     endRadius: 3.3,
-                    color: new THREE.Color(0x33ddff), // Bright cyan
-                    emissive: new THREE.Color(0x00aadd) // Cyan emissive
+                    color: new THREE.Color(0x00ffff), // Pure, saturated cyan
+                    emissive: new THREE.Color(0x00cccc) // Deep cyan emissive
                 },
                 {
                     startRadius: 3.3,
                     endRadius: 5.0,
-                    color: new THREE.Color(0xaa55ff), // Bright violet
-                    emissive: new THREE.Color(0x7722ee) // Violet emissive
+                    color: new THREE.Color(0xff00ff), // Pure, saturated magenta
+                    emissive: new THREE.Color(0xcc00cc) // Deep magenta emissive
                 }
             ];
 

@@ -174,17 +174,19 @@ const EyeVisualization = ({ className, style }) => {
             highlight.position.set(-0.3, 0.3, 0.06);
             eyeGroup.add(highlight);
 
+
+            // Outer ring 
             // Create thinner outer sclera glow (more subtle border)
-            const scleraGlowGeometry = new THREE.RingGeometry(5, 5.2, 64);
-            const scleraGlowMaterial = new THREE.MeshStandardMaterial({
-                color: 0x3399ff,
-                emissive: 0x006699,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.5
-            });
-            const scleraGlow = new THREE.Mesh(scleraGlowGeometry, scleraGlowMaterial);
-            eyeGroup.add(scleraGlow);
+            // const scleraGlowGeometry = new THREE.RingGeometry(5, 5.2, 64);
+            // const scleraGlowMaterial = new THREE.MeshStandardMaterial({
+            //     color: 0x3399ff,
+            //     emissive: 0x006699,
+            //     side: THREE.DoubleSide,
+            //     transparent: true,
+            //     opacity: 0.5
+            // });
+            // const scleraGlow = new THREE.Mesh(scleraGlowGeometry, scleraGlowMaterial);
+            // eyeGroup.add(scleraGlow);
         };
 
         // Create uniformly distributed fibers to define the color pattern

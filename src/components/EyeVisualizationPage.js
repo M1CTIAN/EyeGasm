@@ -19,6 +19,19 @@ const EyeVisualization = ({ className, style }) => {
     const targetScrollYRef = useRef(0);
     const clock = useRef(new THREE.Clock());
 
+    // Pre-create a pool of particles and reuse them
+    const particlePool = [];
+    const POOL_SIZE = 5000;
+
+    const initParticlePool = () => {
+        for (let i = 0; i < POOL_SIZE; i++) {
+            const particle = createParticle();
+            particle.visible = false;
+            particlePool.push(particle);
+            scene.add(particle);
+        }
+    };
+
     useEffect(() => {
         // Only run on client side
         if (typeof window === 'undefined') return;
@@ -130,33 +143,132 @@ const EyeVisualization = ({ className, style }) => {
             // Add uniformly distributed fibers with thicker strands
             createUniformFibers(fibersGroup, 1.0, 5.0, 500); // Reduced count, increased thickness
 
-            // Pupil (more natural with depth)
-            const pupilGeometry = new THREE.CircleGeometry(1.0, 64);
-            const pupilMaterial = new THREE.MeshStandardMaterial({
-                color: 0x000000,
-                emissive: 0x000000,
-                roughness: 0.5,
-                metalness: 0.0,
-                side: THREE.DoubleSide
-            });
-            const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-            pupil.position.z = 0.05;
-            eyeGroup.add(pupil);
-            pupilRef.current = pupil;
+            // Enhanced realistic pupil with depth layers
+            const createCosmicPupil = () => {
+                const pupilGroup = new THREE.Group();
+                
+                // Base pupil - black hole effect
+                const pupilGeometry = new THREE.CircleGeometry(1.0, 64);
+                const pupilMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x000000,
+                    emissive: 0x000505,
+                    roughness: 0.1,
+                    metalness: 0.9,
+                    side: THREE.DoubleSide
+                });
+                const basePupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+                basePupil.position.z = 0.05;
+                pupilGroup.add(basePupil);
+                
+                // Create vortex effect with spiraling rings
+                const vortexRingsCount = 10;
+                const vortexRings = [];
+                
+                for (let i = 0; i < vortexRingsCount; i++) {
+                    // Calculate ring properties based on index
+                    const ringRadius = 0.7 - (i * 0.07);
+                    const segments = 64;
+                    const ringGeometry = new THREE.RingGeometry(ringRadius * 0.85, ringRadius, segments);
+                    
+                    // Create subtle glow effect with custom shader material
+                    const ringMaterial = new THREE.MeshStandardMaterial({
+                        color: 0x000000,
+                        emissive: new THREE.Color(0x000033).multiplyScalar(0.2 + i * 0.15),
+                        transparent: true,
+                        opacity: 0.7 - (i * 0.08),
+                        side: THREE.DoubleSide,
+                        roughness: 0.3,
+                        metalness: 0.8
+                    });
+                    
+                    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                    ring.rotation.z = i * (Math.PI / vortexRingsCount);
+                    ring.position.z = 0.06 + (i * 0.012);
+                    ring.userData = {
+                        isVortexRing: true,
+                        ringIndex: i,
+                        rotationSpeed: 0.004 - (i * 0.0005),
+                        pulseFrequency: 0.3 + (i * 0.1)
+                    };
+                    
+                    pupilGroup.add(ring);
+                    vortexRings.push(ring);
+                }
+                
+      
+              
+                
+                // Add particles floating above the pupil for cosmic dust effect
+                const particlesCount = 120;
+                const particlesGeometry = new THREE.BufferGeometry();
+                const particlesPositions = new Float32Array(particlesCount * 3);
+                const particlesSizes = new Float32Array(particlesCount);
+                
+                for (let i = 0; i < particlesCount; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 0.2 + Math.random() * 0.7; // Concentrate in pupil area
+                    
+                    particlesPositions[i * 3] = radius * Math.cos(angle);
+                    particlesPositions[i * 3 + 1] = radius * Math.sin(angle);
+                    particlesPositions[i * 3 + 2] = 0.15 + Math.random() * 0.1;
+                    
+                    particlesSizes[i] = 0.006 + Math.random() * 0.01;
+                }
+                
+                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlesPositions, 3));
+                particlesGeometry.setAttribute('size', new THREE.BufferAttribute(particlesSizes, 1));
+                
+                const particlesMaterial = new THREE.PointsMaterial({
+                    color: 0x3366ff,
+                    size: 0.01,
+                    transparent: true,
+                    opacity: 0.6,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    sizeAttenuation: true
+                });
+                
+                const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+                particles.userData = { isCosmicParticles: true };
+                pupilGroup.add(particles);
+                
+                // Central energy source/event horizon
+                const coreGeometry = new THREE.CircleGeometry(0.4, 32);
+                const coreMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x000000,
+                    emissive: 0x000033,
+                    emissiveIntensity: 0.5,
+                    roughness: 0.1,
+                    metalness: 1.0,
+                    side: THREE.DoubleSide
+                });
+                
+                const core = new THREE.Mesh(coreGeometry, coreMaterial);
+                core.position.z = 0.14;
+                core.userData = { isCore: true };
+                pupilGroup.add(core);
+                
+                // Add subtle highlight rim
+                const rimGeometry = new THREE.RingGeometry(0.38, 0.4, 32);
+                const rimMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x0055ff,
+                    transparent: true,
+                    opacity: 0.4,
+                    side: THREE.DoubleSide,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+                rim.position.z = 0.15;
+                rim.userData = { isRim: true };
+                pupilGroup.add(rim);
+                
+                eyeGroup.add(pupilGroup);
+                pupilRef.current = pupilGroup;
+            };
 
-            // Add depth to pupil with a gradient ring
-            const pupilRingGeometry = new THREE.RingGeometry(0.8, 1.0, 64);
-            const pupilRingMaterial = new THREE.MeshStandardMaterial({
-                color: 0x000000,
-                transparent: true,
-                opacity: 0.7,
-                side: THREE.DoubleSide
-            });
-            const pupilRing = new THREE.Mesh(pupilRingGeometry, pupilRingMaterial);
-            pupilRing.position.z = 0.04;
-            eyeGroup.add(pupilRing);
-
-            // REMOVED: Limbal ring (the darker ring around the iris)
+            // Call the new function instead of creating a basic pupil
+            createCosmicPupil();
 
             // Add small precise floating particles
             const particles = createPreciseFloatingParticles(4000, 1.0, 5.0);
@@ -174,53 +286,51 @@ const EyeVisualization = ({ className, style }) => {
             highlight.position.set(-0.3, 0.3, 0.06);
             eyeGroup.add(highlight);
 
-
-            // Outer ring 
-            // Create thinner outer sclera glow (more subtle border)
-            // const scleraGlowGeometry = new THREE.RingGeometry(5, 5.2, 64);
-            // const scleraGlowMaterial = new THREE.MeshStandardMaterial({
-            //     color: 0x3399ff,
-            //     emissive: 0x006699,
-            //     side: THREE.DoubleSide,
-            //     transparent: true,
-            //     opacity: 0.5
-            // });
-            // const scleraGlow = new THREE.Mesh(scleraGlowGeometry, scleraGlowMaterial);
-            // eyeGroup.add(scleraGlow);
         };
 
         // Create uniformly distributed fibers to define the color pattern
-        const createUniformFibers = (parent, innerRadius, outerRadius, fiberCount = 900) => {
-            // Define color bands based on distance from center - using more vibrant colors
+        const createUniformFibers = (parent, innerRadius, outerRadius, fiberCount) => {
+            // Determine detail level based on current zoom
+            const zoomProgress = scrollYRef.current / 100;
+            const detailLevel = zoomProgress > 0.7 ? 'high' : (zoomProgress > 0.3 ? 'medium' : 'low');
+            
+            // Adjust count based on detail level
+            const actualFiberCount = detailLevel === 'high' ? fiberCount : 
+                                   detailLevel === 'medium' ? Math.floor(fiberCount * 0.6) : 
+                                   Math.floor(fiberCount * 0.4);
+            
+            // Continue with fiber creation using actualFiberCount...
+
+            // Define color bands with more vivid colors and smoother transitions
             const colorBands = [
                 {
                     startRadius: 1.0,
                     endRadius: 1.7,
-                    color: new THREE.Color(0xff0000), // Pure, saturated red
-                    emissive: new THREE.Color(0xcc0000) // Deep red emissive
+                    color: new THREE.Color(0xff2200), // Vibrant orange-red
+                    emissive: new THREE.Color(0xbb1100) 
                 },
                 {
                     startRadius: 1.7,
                     endRadius: 2.3,
-                    color: new THREE.Color(0x00ff00), // Pure, saturated green
-                    emissive: new THREE.Color(0x00cc00) // Deep green emissive
+                    color: new THREE.Color(0x00ff88), // Bright teal-green
+                    emissive: new THREE.Color(0x00bb66) 
                 },
                 {
                     startRadius: 2.3,
                     endRadius: 3.3,
-                    color: new THREE.Color(0x00ffff), // Pure, saturated cyan
-                    emissive: new THREE.Color(0x00cccc) // Deep cyan emissive
+                    color: new THREE.Color(0x00ccff), // Bright sky blue
+                    emissive: new THREE.Color(0x0099cc) 
                 },
                 {
                     startRadius: 3.3,
                     endRadius: 5.0,
-                    color: new THREE.Color(0xff00ff), // Pure, saturated magenta
-                    emissive: new THREE.Color(0xcc00cc) // Deep magenta emissive
+                    color: new THREE.Color(0xbb00ff), // Rich purple
+                    emissive: new THREE.Color(0x8800cc) 
                 }
             ];
 
             // Total fibers to create
-            const totalFibers = fiberCount;
+            const totalFibers = actualFiberCount;
             const angularStep = (Math.PI * 2) / totalFibers;
 
             // Create the fibers with organic distribution
@@ -228,7 +338,7 @@ const EyeVisualization = ({ className, style }) => {
                 // Calculate angle for perfect distribution
                 const angle = i * angularStep;
 
-                // Create points for the fiber with natural waviness
+                // Create points for the fiber with enhanced natural waviness
                 const curvePoints = [];
 
                 // Start at the pupil edge with slight variation
@@ -240,35 +350,36 @@ const EyeVisualization = ({ className, style }) => {
                 // Add start point
                 curvePoints.push(new THREE.Vector3(startX, startY, 0));
 
-                // Create natural waviness with more segments
-                const segments = 12; // Increased for smoother color transitions
+                // Create natural waviness with more segments for smoother, more detailed fibers
+                const segments = 16; // Increased from 12 for finer detail
                 for (let j = 1; j < segments; j++) {
                     const t = j / segments;
                     const radius = innerRadius + (outerRadius - innerRadius) * t;
 
-                    // Waviness increases toward outer edge
-                    const waveAmplitude = 0.06 * t;
-
-                    // Natural waviness pattern
-                    const waveFrequency = 5 + Math.floor(Math.random() * 3);
-                    const wavePhase = angle * waveFrequency + Math.random() * 0.5;
-                    const waveOffset = Math.sin(wavePhase + t * Math.PI * 2) * waveAmplitude;
+                    // Enhanced waviness with more organic patterns
+                    const waveAmplitude = 0.08 * t * (0.8 + Math.random() * 0.4); // More varied amplitude
+                    
+                    // Multi-layered waviness for more organic look
+                    const primaryWave = Math.sin(angle * 5 + t * Math.PI * 2) * waveAmplitude;
+                    const secondaryWave = Math.sin(angle * 12 + t * Math.PI * 3) * waveAmplitude * 0.3;
+                    const waveOffset = primaryWave + secondaryWave;
 
                     // Calculate wave direction perpendicular to radius
                     const perpAngle = angle + Math.PI / 2;
                     const offsetX = waveOffset * Math.cos(perpAngle);
                     const offsetY = waveOffset * Math.sin(perpAngle);
 
-                    // Add natural "imperfections"
-                    const imperfectionX = (Math.random() - 0.5) * 0.03 * t;
-                    const imperfectionY = (Math.random() - 0.5) * 0.03 * t;
+                    // Add natural "imperfections" that increase toward outer edges
+                    const imperfectionScale = t * t * 0.05;
+                    const imperfectionX = (Math.random() - 0.5) * imperfectionScale;
+                    const imperfectionY = (Math.random() - 0.5) * imperfectionScale;
 
                     // Final position
                     const x = radius * Math.cos(angle) + offsetX + imperfectionX;
                     const y = radius * Math.sin(angle) + offsetY + imperfectionY;
 
-                    // Variable z-depth
-                    const z = 0.04 + (Math.random() - 0.5) * 0.02;
+                    // Variable z-depth for more 3D effect
+                    const z = 0.04 + Math.sin(angle * 8 + t * Math.PI) * 0.02;
 
                     curvePoints.push(new THREE.Vector3(x, y, z));
                 }
@@ -285,35 +396,37 @@ const EyeVisualization = ({ className, style }) => {
                 // Create a smooth curve through the points
                 const curve = new THREE.CatmullRomCurve3(curvePoints);
 
-                // Variable fiber thickness - make them thicker for more visibility
-                const baseThickness = 0.006 + Math.random() * 0.004;
-                const pattern = Math.floor(i % 6);
+                // Variable fiber thickness with more interesting patterns
+                const thicknessBase = 0.005 + Math.random() * 0.003;
                 let thickness;
 
-                switch (pattern) {
-                    case 0:
-                        thickness = baseThickness * 1.6;
+                // Create different thickness patterns
+                const patternType = Math.floor(Math.random() * 5);
+                switch (patternType) {
+                    case 0: // Gradually thickening fibers
+                        thickness = thicknessBase * (1.2 + Math.sin(angle * 3) * 0.4) * 1.6;
                         break;
-                    case 1:
-                        thickness = baseThickness * 0.9;
+                    case 1: // Thin delicate fibers
+                        thickness = thicknessBase * 0.8;
                         break;
-                    case 2:
-                        thickness = baseThickness * 1.4;
+                    case 2: // Extra thick prominent fibers
+                        thickness = thicknessBase * 2.0;
                         break;
-                    case 3:
-                        thickness = baseThickness * 1.1;
+                    case 3: // Medium thickness with variation
+                        thickness = thicknessBase * (1.4 + Math.sin(angle * 7) * 0.3);
                         break;
-                    default:
-                        thickness = baseThickness;
+                    case 4: // Standard with slight randomness
+                        thickness = thicknessBase * (1.0 + Math.random() * 0.5);
+                        break;
                 }
 
-                // Create tube geometry along the curve
+                // Create tube geometry with enhanced detail
                 const tubeGeometry = new THREE.TubeGeometry(
                     curve,
-                    24, // Increased for smoother color transitions
+                    28, // Increased segments for smoother tubes
                     thickness,
-                    5, // radial segments
-                    false // closed
+                    6, // More radial segments for better highlights
+                    false
                 );
 
                 // For each segment of the tube, assign a color based on its distance from center
@@ -405,17 +518,28 @@ const EyeVisualization = ({ className, style }) => {
                 // Add the color attribute to the geometry
                 tubeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-                // Create material with vertex colors - CRITICAL FIX - lower emissive intensity
+                // Create material with vertex colors and enhanced properties
                 const material = new THREE.MeshStandardMaterial({
                     vertexColors: true,
-                    roughness: 0.3,
-                    metalness: 0.6,
-                    emissive: 0x888888, // Much lower emissive base to let vertex colors show through
-                    emissiveIntensity: 0.4, // Lower intensity allows colors to be more visible
+                    roughness: 0.2,  // Lower roughness for more shine
+                    metalness: 0.7,  // Higher metalness for better reflections
+                    emissive: 0x333333,
+                    emissiveIntensity: 0.25,
                     transparent: true,
                     opacity: 0.95,
-                    side: THREE.DoubleSide
+                    side: THREE.DoubleSide,
+                    envMapIntensity: 1.5, // Enhances reflections
+                    clearcoat: 0.3 + Math.random() * 0.4, // Add clearcoat for wet look
+                    clearcoatRoughness: 0.2
                 });
+
+                // Add unique material properties to each fiber
+                material.userData = {
+                    baseEmissiveIntensity: 0.25 + Math.random() * 0.15,
+                    pulseFactor: 0.8 + Math.random() * 0.4
+                };
+
+                materialRefs.current.push(material); // Add to material references
 
                 const tube = new THREE.Mesh(tubeGeometry, material);
                 parent.add(tube);
@@ -575,6 +699,20 @@ const EyeVisualization = ({ className, style }) => {
                 depthWrite: false
             });
 
+            // For particles, use instanced mesh instead of individual meshes
+            const particleGeometry = new THREE.SphereGeometry(0.02, 6, 4);
+            const particleMaterial = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                roughness: 0.3,
+                metalness: 0.6,
+                emissive: 0x888888,
+                emissiveIntensity: 0.4,
+                transparent: true,
+                opacity: 0.95,
+                side: THREE.DoubleSide
+            });
+            const particleInstances = new THREE.InstancedMesh(particleGeometry, particleMaterial, count);
+
             return new THREE.Points(particlesGeometry, particlesMaterial);
         };
 
@@ -603,31 +741,203 @@ const EyeVisualization = ({ className, style }) => {
                 // Create a ripple effect through the fibers
                 fibersGroupRef.current.children.forEach((fiber, index) => {
                     if (fiber.type === 'Mesh' && fiber.geometry.type === 'TubeGeometry') {
-                        // Use the fiber's angle to create a wave pattern
-                        const angle = Math.atan2(
-                            fiber.geometry.attributes.position.array[1],
-                            fiber.geometry.attributes.position.array[0]
-                        );
-
-                        // Coordinated pulsing based on angle
-                        const pulsePhase = angle * 3 + elapsedTime * 0.5;
-                        const pulseScale = 1 + Math.sin(pulsePhase) * 0.03;
+                        // Get position data for more natural movement
+                        const posArray = fiber.geometry.attributes.position.array;
+                        const x = posArray[0];
+                        const y = posArray[1];
+                        
+                        // Calculate angle and distance for movement patterns
+                        const angle = Math.atan2(y, x);
+                        const distance = Math.sqrt(x*x + y*y);
+                        
+                        // Create multiple overlapping wave patterns
+                        const primaryPhase = angle * 3 + elapsedTime * 0.5;
+                        const secondaryPhase = angle * 5 - elapsedTime * 0.3;
+                        const tertiaryPhase = distance * 0.8 + elapsedTime * 0.7;
+                        
+                        // Combine waves for complex pulsing pattern
+                        const pulseScale = 1 + 
+                            Math.sin(primaryPhase) * 0.02 + 
+                            Math.sin(secondaryPhase) * 0.01 +
+                            Math.sin(tertiaryPhase) * 0.005;
+                            
                         fiber.scale.set(pulseScale, pulseScale, 1);
 
-                        // Coordinated shimmer effect - CRITICAL FIX - lower emissive intensity
-                        if (fiber.material && fiber.material.opacity) {
-                            fiber.material.opacity = 0.7 + Math.sin(pulsePhase) * 0.2;
-                            fiber.material.emissiveIntensity = 0.3 + Math.sin(pulsePhase) * 0.15; // Lower emissive intensity
+                        // Enhanced shimmer effect with material properties
+                        if (fiber.material) {
+                            const userData = fiber.material.userData || {};
+                            const baseEmissive = userData.baseEmissiveIntensity || 0.25;
+                            const pulseFactor = userData.pulseFactor || 1.0;
+                            
+                            // Create varied shimmer effect
+                            const shimmerEffect = 0.15 * Math.sin(primaryPhase * pulseFactor);
+                            
+                            // Apply enhanced visual effects
+                            fiber.material.opacity = 0.8 + Math.sin(primaryPhase) * 0.15;
+                            fiber.material.emissiveIntensity = baseEmissive + shimmerEffect;
+                            
+                            // Subtle color shift for iridescent effect
+                            const hueShift = Math.sin(tertiaryPhase) * 0.02;
+                            fiber.material.emissive.offsetHSL(hueShift, 0, 0);
+                            
                             fiber.material.needsUpdate = true;
                         }
                     }
                 });
             }
 
-            // Make pupil expand/contract with a breathing effect
+            // Cosmic pupil animation
             if (pupilRef.current) {
-                const breathingEffect = 1 + Math.sin(elapsedTime * 0.5) * 0.08;
+                const breathingBase = Math.sin(elapsedTime * 0.5) * 0.08;
+                const breathingEffect = 1 + breathingBase;
+                
+                // Subtle pulsing scale for the entire pupil
                 pupilRef.current.scale.set(breathingEffect, breathingEffect, 1);
+                
+                // Animate each element based on its type
+                pupilRef.current.children.forEach(element => {
+                    if (!element.userData) return;
+                    
+                    // Vortex rings animation - rotation and pulse
+                    if (element.userData.isVortexRing) {
+                        const { ringIndex, rotationSpeed, pulseFrequency } = element.userData;
+                        
+                        // Rotate the rings to create vortex illusion
+                        element.rotation.z += rotationSpeed;
+                        
+                        // Pulsing opacity effect
+                        if (element.material) {
+                            const opacityPulse = Math.sin(elapsedTime * pulseFrequency + ringIndex) * 0.1;
+                            element.material.opacity = 0.7 - (ringIndex * 0.08) + opacityPulse;
+                            
+                            // Subtle emissive color changes
+                            const emissiveIntensity = 0.2 + ringIndex * 0.15 + 
+                                Math.sin(elapsedTime * 0.3 + ringIndex) * 0.1;
+                            element.material.emissiveIntensity = emissiveIntensity;
+                            element.material.needsUpdate = true;
+                        }
+                    }
+                    
+                    // Energy tendrils animation
+                    if (element.userData.isTendril) {
+                        const { tendrilIndex, rotationSpeed, pulseFrequency } = element.userData;
+                        
+                        // Subtle rotation around center
+                        element.rotation.z += rotationSpeed * Math.sin(elapsedTime * 0.2);
+                        
+                        // Scale pulsing
+                        const scalePulse = 1 + Math.sin(elapsedTime * pulseFrequency) * 0.08;
+                        element.scale.set(scalePulse, scalePulse, 1);
+                        
+                        // Emissive intensity pulsing
+                        if (element.material) {
+                            const emissivePulse = 0.5 + Math.sin(elapsedTime * 0.7 + tendrilIndex * 0.2) * 0.3;
+                            element.material.emissiveIntensity = emissivePulse;
+                            element.material.needsUpdate = true;
+                        }
+                    }
+                    
+                    // Cosmic particles swirling animation
+                    if (element.userData.isCosmicParticles && element.geometry) {
+                        const positions = element.geometry.attributes.position.array;
+                        
+                        for (let i = 0; i < positions.length / 3; i++) {
+                            const x = positions[i * 3];
+                            const y = positions[i * 3 + 1];
+                            const z = positions[i * 3 + 2];
+                            
+                            // Calculate current radius and angle
+                            const radius = Math.sqrt(x*x + y*y);
+                            let angle = Math.atan2(y, x);
+                            
+                            // Add orbital motion - faster near center
+                            const orbitalSpeed = 0.05 / (radius + 0.2);
+                            angle += delta * orbitalSpeed;
+                            
+                            // Vertical oscillation
+                            const newZ = z + Math.sin(elapsedTime * 2 + i * 0.2) * 0.001;
+                            
+                            // Update position
+                            positions[i * 3] = radius * Math.cos(angle);
+                            positions[i * 3 + 1] = radius * Math.sin(angle);
+                            positions[i * 3 + 2] = newZ;
+                        }
+                        
+                        element.geometry.attributes.position.needsUpdate = true;
+                    }
+                    
+                    // Central core/event horizon animation
+                    if (element.userData.isCore && element.material) {
+                        // Pulsing emissive intensity
+                        const coreIntensity = 0.5 + Math.sin(elapsedTime * 0.8) * 0.3;
+                        element.material.emissiveIntensity = coreIntensity;
+                        
+                        // Subtle scale pulsing
+                        const coreScale = 1 + Math.sin(elapsedTime * 0.4) * 0.05;
+                        element.scale.set(coreScale, coreScale, 1);
+                        
+                        element.material.needsUpdate = true;
+                    }
+                    
+                    // Rim highlight animation
+                    if (element.userData.isRim && element.material) {
+                        // Smoother pulsing opacity with reduced amplitude
+                        const rimOpacity = 0.45 + Math.sin(elapsedTime * 0.6) * 0.15;
+                        element.material.opacity = rimOpacity;
+                        
+                        // Much slower color transitions with reduced frequencies
+                        const r = 0.5 + 0.4 * Math.sin(elapsedTime * 0.08);
+                        const g = 0.5 + 0.4 * Math.sin(elapsedTime * 0.08 + Math.PI * 0.6);
+                        const b = 0.5 + 0.4 * Math.sin(elapsedTime * 0.08 + Math.PI * 1.2);
+                        
+                        // More consistent blue base for less dramatic shifts
+                        const blueBase = 0.5;
+                        element.material.color.setRGB(
+                            r * 0.5, 
+                            g * 0.5 + blueBase * 0.3,
+                            b * 0.5 + blueBase
+                        );
+                        
+                        // Gentler emissive color changes with reduced variation
+                        if (element.material.emissive) {
+                            element.material.emissive.setRGB(
+                                r * 0.25,
+                                g * 0.25 + blueBase * 0.2, 
+                                b * 0.25 + blueBase * 0.7
+                            );
+                            
+                            // Smoother emissive intensity with lower frequency and amplitude
+                            element.material.emissiveIntensity = 0.7 + Math.sin(elapsedTime * 0.4) * 0.15;
+                        }
+                        
+                        element.material.needsUpdate = true;
+                    }
+                });
+            }
+
+            // Dynamic depth effects on pupil layers
+            if (pupilRef.current) {
+                let layerIndex = 0;
+                pupilRef.current.children.forEach(layer => {
+                    if (layer.geometry) {
+                        // Skip highlights
+                        if (layer.material.opacity > 0.5) {
+                            // Subtle pulsing z-position for depth effect
+                            const depthPulse = Math.sin(elapsedTime * 0.7 + layerIndex * 0.3) * 0.01;
+                            layer.position.z = layer.position.z * 0.95 + (0.05 + layerIndex * 0.01 + depthPulse) * 0.05;
+                            
+                            // Subtle opacity changes
+                            if (layer.material.transparent) {
+                                const opacityBase = 0.7 + (layerIndex * 0.05);
+                                const opacityVariation = Math.sin(elapsedTime * 0.4 + layerIndex * 0.5) * 0.07;
+                                layer.material.opacity = opacityBase + opacityVariation;
+                                layer.material.needsUpdate = true;
+                            }
+                            
+                            layerIndex++;
+                        }
+                    }
+                });
             }
 
             // Animate particles for subtle coordinated floating motion
@@ -691,8 +1001,37 @@ const EyeVisualization = ({ className, style }) => {
                 pointLightRef.current.intensity = 2 + zoomProgress * 4;
             }
 
+            // Only update visible objects
+            const updateFibers = () => {
+                // Only update fibers that are in view
+                const visibleFibers = fibersGroupRef.current.children.filter(
+                    fiber => {
+                        // Simple frustum culling check
+                        const distance = fiber.position.distanceTo(cameraRef.current.position);
+                        return distance < 15; // Only process fibers within certain distance
+                    }
+                );
+                
+                // Reduce update frequency for distant objects
+                visibleFibers.forEach((fiber, index) => {
+                    // Only update every other frame for optimization
+                    if (index % 2 === frameCount % 2) {
+                        // Your fiber animation code here
+                    }
+                });
+            };
+
             rendererRef.current.render(sceneRef.current, cameraRef.current);
             requestRef.current = requestAnimationFrame(animate);
+        };
+
+        // Group similar operations
+        const updateAllMaterials = () => {
+            // Update all material properties at once instead of in different loops
+            materialRefs.current.forEach(material => {
+                // Batch updates
+                material.needsUpdate = true;
+            });
         };
 
         // Handling scroll wheel

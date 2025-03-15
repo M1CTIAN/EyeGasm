@@ -1,29 +1,29 @@
 /* Main container */
 .container {
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-  font-family: 'Poppins', sans-serif;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    font-family: 'Poppins', sans-serif;
 }
 
 /* Utility classes that might be used across components */
 .visuallyHidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
 
 /* Hero Section - Update to compensate for removed navbar */
 .hero {
     height: 100vh;
-    background: linear-gradient(to right, rgba(26, 42, 58, 0.8), rgba(26, 42, 58, 0.4)), 
-                url('/hero.jpg') center/cover no-repeat;
+    background: linear-gradient(to right, rgba(26, 42, 58, 0.8), rgba(26, 42, 58, 0.4)),
+        url('/hero.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -40,7 +40,7 @@
     left: 0;
     width: 100%;
     height: 150px;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
     z-index: 1;
 }
 
@@ -54,8 +54,8 @@
 /* Hero Section */
 .hero {
     height: 100vh;
-    background: linear-gradient(to right, rgba(26, 42, 58, 0.8), rgba(26, 42, 58, 0.4)), 
-                url('/hero.jpg') center/cover no-repeat;
+    background: linear-gradient(to right, rgba(26, 42, 58, 0.8), rgba(26, 42, 58, 0.4)),
+        url('/hero.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -72,7 +72,7 @@
     left: 0;
     width: 100%;
     height: 150px;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
     z-index: 1;
 }
 
@@ -110,9 +110,17 @@
 }
 
 @keyframes gradientText {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .heroSubtitle {
@@ -440,7 +448,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
     transition: left 0.7s ease;
 }
 
@@ -501,10 +509,13 @@
 }
 
 @keyframes scrollPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotate(45deg) translateY(-5px);
         opacity: 0.5;
     }
+
     50% {
         transform: rotate(45deg) translateY(0);
         opacity: 1;
@@ -536,7 +547,7 @@
     .heroTitleBig {
         font-size: 4rem;
     }
-    
+
     .heroSubtitle {
         font-size: 1.4rem;
     }
@@ -663,9 +674,12 @@
 }
 
 @keyframes letterFloat {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-20px);
     }
@@ -703,8 +717,13 @@
 }
 
 @keyframes progressShine {
-    0% { left: -100px; }
-    100% { left: 100%; }
+    0% {
+        left: -100px;
+    }
+
+    100% {
+        left: 100%;
+    }
 }
 
 .loadingText {
@@ -721,8 +740,15 @@
 }
 
 @keyframes fadeInOut {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .loadingPercentage {
@@ -753,12 +779,15 @@
         transform: translate(0, 0) scale(1);
         opacity: 0;
     }
+
     20% {
         opacity: 0.5;
     }
+
     80% {
         opacity: 0.5;
     }
+
     100% {
         transform: translate(100px, -100px) scale(2);
         opacity: 0;
@@ -833,7 +862,7 @@
     backdrop-filter: blur(10px);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 
+    box-shadow:
         0 5px 15px rgba(0, 0, 0, 0.2),
         0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
@@ -850,8 +879,15 @@
 }
 
 @keyframes typewriter {
-    0%, 100% { width: 0; }
-    50% { width: 100%; }
+
+    0%,
+    100% {
+        width: 0;
+    }
+
+    50% {
+        width: 100%;
+    }
 }
 
 .loadingProgressContainer {
@@ -865,10 +901,10 @@
 
 .loadingProgressBar {
     height: 100%;
-    background: linear-gradient(90deg, 
-        var(--color-accent), 
-        var(--color-accent-secondary),
-        var(--color-accent));
+    background: linear-gradient(90deg,
+            var(--color-accent),
+            var(--color-accent-secondary),
+            var(--color-accent));
     background-size: 200% 100%;
     border-radius: 8px;
     transition: width 0.25s ease;
@@ -877,9 +913,17 @@
 }
 
 @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .loadingStats {
@@ -919,13 +963,29 @@
 }
 
 @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 0.3; }
-    50% { transform: scale(2); opacity: 0.5; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(2);
+        opacity: 0.5;
+    }
 }
 
 @keyframes fadeInOut {
-    0%, 100% { opacity: 0.05; }
-    50% { opacity: 0.15; }
+
+    0%,
+    100% {
+        opacity: 0.05;
+    }
+
+    50% {
+        opacity: 0.15;
+    }
 }
 
 /* Modern Feature Cards */
@@ -939,7 +999,7 @@
     z-index: 1;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 
+    box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.1),
         0 1px 8px rgba(0, 0, 0, 0.2);
     transform-style: preserve-3d;
@@ -948,7 +1008,7 @@
 
 .featureCard:hover {
     transform: translateY(-15px) rotateX(5deg) rotateY(-5deg);
-    box-shadow: 
+    box-shadow:
         0 20px 40px rgba(0, 0, 0, 0.2),
         0 15px 12px rgba(0, 0, 0, 0.1),
         0 0 0 2px var(--color-accent-secondary);
@@ -961,11 +1021,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(
-        circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-        rgba(255, 255, 255, 0.06) 0%,
-        transparent 60%
-    );
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            rgba(255, 255, 255, 0.06) 0%,
+            transparent 60%);
     z-index: -1;
     opacity: 0;
     transition: opacity 0.3s;
@@ -989,7 +1047,7 @@
     position: relative;
     overflow: hidden;
     transform: translateZ(20px);
-    box-shadow: 
+    box-shadow:
         0 15px 35px rgba(0, 0, 0, 0.1),
         0 3px 10px rgba(0, 0, 0, 0.07);
     transition: transform 0.3s;
@@ -1006,16 +1064,16 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: conic-gradient(
-        transparent, 
-        rgba(142, 184, 167, 0.1), 
-        transparent 30%
-    );
+    background: conic-gradient(transparent,
+            rgba(142, 184, 167, 0.1),
+            transparent 30%);
     animation: rotate 4s linear infinite;
 }
 
 @keyframes rotate {
-    100% { transform: rotate(1turn); }
+    100% {
+        transform: rotate(1turn);
+    }
 }
 
 /* CTA Button modernized */
@@ -1032,7 +1090,7 @@
     margin-top: 1rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 
+    box-shadow:
         0 10px 20px rgba(0, 0, 0, 0.1),
         0 6px 6px rgba(0, 0, 0, 0.1),
         0 0 0 0 var(--color-accent) inset;
@@ -1041,7 +1099,7 @@
 
 .ctaButton:hover {
     transform: translateY(-5px) scale(1.05);
-    box-shadow: 
+    box-shadow:
         0 15px 30px rgba(142, 184, 167, 0.3),
         0 10px 10px rgba(0, 0, 0, 0.1),
         0 0 0 3px var(--color-accent) inset;
@@ -1054,7 +1112,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     transition: left 0.7s ease;
     z-index: -1;
 }
@@ -1084,9 +1142,17 @@
 }
 
 @keyframes gradientBorder {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 /* Hero section enhancements */
@@ -1117,9 +1183,9 @@
     top: 10px;
     left: 10px;
     z-index: -1;
-    background: linear-gradient(45deg, 
-        rgba(var(--color-accent-rgb), 0.1), 
-        rgba(var(--color-accent-secondary-rgb), 0.1));
+    background: linear-gradient(45deg,
+            rgba(var(--color-accent-rgb), 0.1),
+            rgba(var(--color-accent-secondary-rgb), 0.1));
     background-clip: text;
     -webkit-background-clip: text;
     text-fill-color: transparent;
@@ -1289,12 +1355,16 @@
         transform: rotateX(-90deg) translateY(30px);
         filter: blur(10px);
     }
-    20%, 45% {
+
+    20%,
+    45% {
         opacity: 1;
         transform: rotateX(0deg) translateY(0);
         filter: blur(0);
     }
-    55%, 100% {
+
+    55%,
+    100% {
         opacity: 1;
         transform: rotateX(0deg) translateY(0);
         filter: blur(0);
@@ -1302,9 +1372,12 @@
 }
 
 @keyframes textPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.7;
     }
+
     50% {
         opacity: 1;
     }
@@ -1315,10 +1388,12 @@
         transform: translateY(-50%) scale(0.8);
         opacity: 0.5;
     }
+
     50% {
         transform: translateY(-50%) scale(1.2);
         opacity: 1;
     }
+
     100% {
         transform: translateY(-50%) scale(0.8);
         opacity: 0.5;
@@ -1330,13 +1405,16 @@
         transform: translate(0, 0) scale(0);
         opacity: 0;
     }
+
     10% {
         opacity: 0.5;
         transform: scale(1);
     }
+
     90% {
         opacity: 0.5;
     }
+
     100% {
         transform: translate(var(--translate-x, 100px), var(--translate-y, -100px)) scale(0);
         opacity: 0;
@@ -1363,12 +1441,25 @@
 }
 
 @keyframes twinkle {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: var(--opacity);
         transform: scale(1);
     }
+
     50% {
         opacity: 0.2;
         transform: scale(0.7);
     }
+}
+
+.noParallax {
+    /* This ensures the element is treated as a standard section */
+    position: relative;
+    z-index: 1;
+    /* This tells Locomotive Scroll to handle this as static content */
+    data-scroll-section: "";
+    /* Override any data-scroll transformations */
+    transform: none !important;
 }

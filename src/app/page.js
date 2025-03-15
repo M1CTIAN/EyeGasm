@@ -41,6 +41,7 @@ export default function Page() {
                     smooth: true
                 }
             });
+
             // Update scroll on window resize
             window.addEventListener('resize', () => {
                 scroll.update();
@@ -69,10 +70,10 @@ export default function Page() {
         <div className={styles.container} data-scroll-container ref={scrollRef}>
             <HeroSection />
 
-            {/* Add the EyeVisualizationPage component here */}
-            <div data-scroll-section>
+            {/* Eye visualization - static section */}
+            <section data-scroll-section>
                 <EyeVisualizationPage />
-            </div>
+            </section>
 
             <ParallaxSection
                 id="gallery"
@@ -94,7 +95,6 @@ export default function Page() {
                 titleScrollSpeed="3"
                 subtitleScrollSpeed="1.5"
             />
-
 
             <ParallaxSection
                 backgroundImage="/NEO_elbrus_big.jpg"

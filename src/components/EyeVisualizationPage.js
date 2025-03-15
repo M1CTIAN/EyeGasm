@@ -32,6 +32,14 @@ const EyeVisualization = ({ className, style }) => {
         }
     };
 
+    // Add state for mouse position
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const mouseVector = useRef(new THREE.Vector2(0, 0));
+
+    // Add refs to store original particle positions
+    const floatingParticlesOriginalPositions = useRef(null);
+    const fiberEndParticlesOriginalPositions = useRef(new Map());
+
     useEffect(() => {
         // Only run on client side
         if (typeof window === 'undefined') return;
@@ -141,7 +149,7 @@ const EyeVisualization = ({ className, style }) => {
             fibersGroupRef.current = fibersGroup;
 
             // Add uniformly distributed fibers with thicker strands
-            createUniformFibers(fibersGroup, 1.0, 5.0, 500); // Reduced count, increased thickness
+            createUniformFibers(fibersGroup, 1.0, 5.0, 500); // Extend fibers to outer radius
 
             // Enhanced realistic pupil with depth layers
             const createCosmicPupil = () => {
@@ -271,7 +279,7 @@ const EyeVisualization = ({ className, style }) => {
             createCosmicPupil();
 
             // Add small precise floating particles
-            const particles = createPreciseFloatingParticles(4000, 1.0, 5.0);
+            const particles = createPreciseFloatingParticles(4000, 1.0, 5.0); // Changed back to 5.0
             eyeGroup.add(particles);
 
             // Add subtle reflection highlight on pupil
@@ -324,8 +332,8 @@ const EyeVisualization = ({ className, style }) => {
                 {
                     startRadius: 3.3,
                     endRadius: 5.0,
-                    color: new THREE.Color(0xbb00ff), // Rich purple
-                    emissive: new THREE.Color(0x8800cc) 
+                    color: new THREE.Color(0xbb66ff), // Purple/violet
+                    emissive: new THREE.Color(0x6633cc) 
                 }
             ];
 
@@ -579,13 +587,25 @@ const EyeVisualization = ({ className, style }) => {
                             const particle = new THREE.Mesh(particleGeometry, particleMaterial);
 
                             // Position with more spread from the end of the fiber
-                            particle.position.set(
-                                particlePosition.x + (Math.random() - 0.5) * 0.1,
-                                particlePosition.y + (Math.random() - 0.5) * 0.1,
-                                particlePosition.z + (Math.random() - 0.5) * 0.05
-                            );
+                            const posX = particlePosition.x + (Math.random() - 0.5) * 0.1;
+                            const posY = particlePosition.y + (Math.random() - 0.5) * 0.1;
+                            const posZ = particlePosition.z + (Math.random() - 0.5) * 0.05;
+                            
+                            particle.position.set(posX, posY, posZ);
+                            
+                            // Store original position in userData for return animation
+                            particle.userData = {
+                                ...particle.userData,
+                                originalPosition: {
+                                    x: posX, 
+                                    y: posY, 
+                                    z: posZ
+                                },
+                                lastInfluenced: 0
+                            };
 
-                            parent.add(particle);
+                            // Add directly to the tube mesh so we can easily find it later
+                            tube.add(particle);
                         }
                     }
                 }
@@ -688,6 +708,9 @@ const EyeVisualization = ({ className, style }) => {
             particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
             particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
+            // Store original positions for return-to-origin behavior
+            floatingParticlesOriginalPositions.current = new Float32Array(positions);
+
             // Create custom shader material for better looking particles with stronger shine
             const particlesMaterial = new THREE.PointsMaterial({
                 size: 0.02,
@@ -733,12 +756,12 @@ const EyeVisualization = ({ className, style }) => {
             // Camera zoom based on scroll position
             cameraRef.current.position.z = 10 - (scrollYRef.current / 100) * 7;
 
-            // Animate fibers with subtle coordinated movement
+            // Animate fibers with subtle coordinated movement - REDUCED AMPLITUDE
             if (fibersGroupRef.current) {
-                // Very subtle rotation
-                fibersGroupRef.current.rotation.z += 0.0002 * Math.sin(elapsedTime * 0.2);
+                // Very subtle rotation - reduced by 50%
+                fibersGroupRef.current.rotation.z += 0.0001 * Math.sin(elapsedTime * 0.2); // reduced from 0.0002
 
-                // Create a ripple effect through the fibers
+                // Create a ripple effect through the fibers with reduced amplitude
                 fibersGroupRef.current.children.forEach((fiber, index) => {
                     if (fiber.type === 'Mesh' && fiber.geometry.type === 'TubeGeometry') {
                         // Get position data for more natural movement
@@ -750,34 +773,34 @@ const EyeVisualization = ({ className, style }) => {
                         const angle = Math.atan2(y, x);
                         const distance = Math.sqrt(x*x + y*y);
                         
-                        // Create multiple overlapping wave patterns
-                        const primaryPhase = angle * 3 + elapsedTime * 0.5;
-                        const secondaryPhase = angle * 5 - elapsedTime * 0.3;
-                        const tertiaryPhase = distance * 0.8 + elapsedTime * 0.7;
+                        // Create multiple overlapping wave patterns with reduced amplitude
+                        const primaryPhase = angle * 3 + elapsedTime * 0.3; // reduced speed from 0.5
+                        const secondaryPhase = angle * 5 - elapsedTime * 0.2; // reduced speed from 0.3
+                        const tertiaryPhase = distance * 0.8 + elapsedTime * 0.4; // reduced speed from 0.7
                         
-                        // Combine waves for complex pulsing pattern
+                        // Combine waves for complex pulsing pattern - REDUCED AMPLITUDE
                         const pulseScale = 1 + 
-                            Math.sin(primaryPhase) * 0.02 + 
-                            Math.sin(secondaryPhase) * 0.01 +
-                            Math.sin(tertiaryPhase) * 0.005;
+                            Math.sin(primaryPhase) * 0.01 +  // reduced from 0.02
+                            Math.sin(secondaryPhase) * 0.005 + // reduced from 0.01
+                            Math.sin(tertiaryPhase) * 0.002;   // reduced from 0.005
                             
                         fiber.scale.set(pulseScale, pulseScale, 1);
 
-                        // Enhanced shimmer effect with material properties
+                        // Enhanced shimmer effect with material properties - REDUCED
                         if (fiber.material) {
                             const userData = fiber.material.userData || {};
                             const baseEmissive = userData.baseEmissiveIntensity || 0.25;
                             const pulseFactor = userData.pulseFactor || 1.0;
                             
-                            // Create varied shimmer effect
-                            const shimmerEffect = 0.15 * Math.sin(primaryPhase * pulseFactor);
+                            // Create varied shimmer effect with reduced amplitude
+                            const shimmerEffect = 0.07 * Math.sin(primaryPhase * pulseFactor); // reduced from 0.15
                             
-                            // Apply enhanced visual effects
-                            fiber.material.opacity = 0.8 + Math.sin(primaryPhase) * 0.15;
+                            // Apply enhanced visual effects with reduced amplitude
+                            fiber.material.opacity = 0.8 + Math.sin(primaryPhase) * 0.08; // reduced from 0.15
                             fiber.material.emissiveIntensity = baseEmissive + shimmerEffect;
                             
-                            // Subtle color shift for iridescent effect
-                            const hueShift = Math.sin(tertiaryPhase) * 0.02;
+                            // Subtle color shift for iridescent effect - reduced
+                            const hueShift = Math.sin(tertiaryPhase) * 0.01; // reduced from 0.02
                             fiber.material.emissive.offsetHSL(hueShift, 0, 0);
                             
                             fiber.material.needsUpdate = true;
@@ -940,7 +963,7 @@ const EyeVisualization = ({ className, style }) => {
                 });
             }
 
-            // Animate particles for subtle coordinated floating motion
+            // Animate particles for subtle coordinated floating motion - REDUCED MOVEMENT
             if (eyeGroupRef.current) {
                 eyeGroupRef.current.children.forEach(child => {
                     if (child instanceof THREE.Points) {
@@ -960,19 +983,19 @@ const EyeVisualization = ({ className, style }) => {
                             // Calculate angle from center
                             const angle = Math.atan2(y, x);
 
-                            // Apply orbital motion in direction of fibers
-                            const orbitalSpeed = 0.03 / (distance + 0.1); // Faster near center
+                            // Apply orbital motion in direction of fibers - REDUCED SPEED
+                            const orbitalSpeed = 0.015 / (distance + 0.1); // reduced from 0.03
                             const newAngle = angle + delta * orbitalSpeed;
 
-                            // Add radial pulsing aligned with fiber movement
-                            const pulsePhase = angle * 3 + elapsedTime * 0.5;
-                            const pulseAmount = 0.002 * Math.sin(pulsePhase);
+                            // Add radial pulsing aligned with fiber movement - REDUCED AMPLITUDE
+                            const pulsePhase = angle * 3 + elapsedTime * 0.3; // reduced from 0.5
+                            const pulseAmount = 0.001 * Math.sin(pulsePhase); // reduced from 0.002
                             const newDistance = distance + pulseAmount;
 
                             // Update position
                             positions.setX(i, Math.cos(newAngle) * newDistance);
                             positions.setY(i, Math.sin(newAngle) * newDistance);
-                            positions.setZ(i, z + (Math.sin(elapsedTime * 3 + i) * 0.0005));
+                            positions.setZ(i, z + (Math.sin(elapsedTime * 2 + i) * 0.0003)); // reduced from 0.0005
                         }
 
                         // Mark positions for update
@@ -1021,6 +1044,180 @@ const EyeVisualization = ({ className, style }) => {
                 });
             };
 
+            // Add mouse interaction with particles
+            if (fibersGroupRef.current) {
+                fibersGroupRef.current.children.forEach((fiber, index) => {
+                    if (fiber.type === 'Mesh' && fiber.geometry.type === 'TubeGeometry') {
+                        // ...existing fiber animation code...
+                        
+                        // Add particle interaction at fiber ends
+                        if (fiber.children && fiber.children.length > 0) {
+                            fiber.children.forEach(particle => {
+                                if (particle.type === 'Mesh' && particle.geometry.type === 'SphereGeometry') {
+                                    // Calculate distance from mouse
+                                    const worldPos = particle.getWorldPosition(new THREE.Vector3());
+                                    const screenPos = worldPos.clone().project(cameraRef.current);
+                                    
+                                    const distToMouse = new THREE.Vector2(
+                                        screenPos.x - mouseVector.current.x,
+                                        screenPos.y - mouseVector.current.y
+                                    ).length();
+                                    
+                                    // Apply interactive effect based on distance
+                                    if (distToMouse < 0.2) {
+                                        // Particles are close to mouse - make them react
+                                        const interactionFactor = 1 - (distToMouse / 0.2);
+                                        
+                                        // Scale up particles near mouse
+                                        const scaleEffect = 1 + interactionFactor * 0.5;
+                                        particle.scale.set(scaleEffect, scaleEffect, scaleEffect);
+                                        
+                                        // Increase brightness of particles near mouse
+                                        if (particle.material) {
+                                            particle.material.emissiveIntensity = 0.6 + interactionFactor * 0.8;
+                                            particle.material.needsUpdate = true;
+                                        }
+                                        
+                                        // Add slight movement away from mouse for a repulsion effect
+                                        const repulsionForce = 0.001 * interactionFactor;
+                                        const repulsionVector = new THREE.Vector3(
+                                            screenPos.x - mouseVector.current.x,
+                                            screenPos.y - mouseVector.current.y,
+                                            0
+                                        ).normalize().multiplyScalar(repulsionForce);
+                                        
+                                        particle.position.add(repulsionVector);
+                                        
+                                        // Update last influenced time
+                                        particle.userData.lastInfluenced = elapsedTime;
+                                    } else {
+                                        // Return particles to their original position when not influenced
+                                        // Only start return animation if it was influenced before
+                                        if (particle.userData.originalPosition && 
+                                            elapsedTime - particle.userData.lastInfluenced < 3) {
+                                            
+                                            // Calculate return strength - stronger right after influence
+                                            const timeSinceInfluence = elapsedTime - particle.userData.lastInfluenced;
+                                            const returnStrength = Math.min(1, timeSinceInfluence * 0.6); // Adjust speed here
+                                            
+                                            // Get original position
+                                            const origPos = particle.userData.originalPosition;
+                                            
+                                            // Smoothly interpolate back to original position
+                                            particle.position.x += (origPos.x - particle.position.x) * returnStrength * delta * 5;
+                                            particle.position.y += (origPos.y - particle.position.y) * returnStrength * delta * 5;
+                                            particle.position.z += (origPos.z - particle.position.z) * returnStrength * delta * 5;
+                                            
+                                            // Smoothly reset scale and emissive properties
+                                            const resetFactor = Math.min(1, returnStrength * 2);
+                                            particle.scale.lerp(new THREE.Vector3(1, 1, 1), resetFactor);
+                                            
+                                            if (particle.material) {
+                                                particle.material.emissiveIntensity = 
+                                                    0.6 + (particle.material.emissiveIntensity - 0.6) * (1 - resetFactor);
+                                                particle.material.needsUpdate = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            
+            // Handle the floating particles
+            eyeGroupRef.current?.children.forEach(child => {
+                if (child instanceof THREE.Points && floatingParticlesOriginalPositions.current) {
+                    // Get the positions attribute
+                    const positions = child.geometry.attributes.position;
+                    const originalPositions = floatingParticlesOriginalPositions.current;
+                    
+                    // Create raycaster to detect mouse position in 3D space
+                    const raycaster = new THREE.Raycaster();
+                    raycaster.setFromCamera(mouseVector.current, cameraRef.current);
+                    
+                    // Plane at z=0 to intersect with ray
+                    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                    const mouseIntersect = new THREE.Vector3();
+                    raycaster.ray.intersectPlane(plane, mouseIntersect);
+                    
+                    // Loop through each particle
+                    for (let i = 0; i < positions.count; i++) {
+                        // Get current position
+                        const x = positions.getX(i);
+                        const y = positions.getY(i);
+                        const z = positions.getZ(i);
+                        
+                        // Get original position from stored array
+                        const origX = originalPositions[i * 3];
+                        const origY = originalPositions[i * 3 + 1];
+                        const origZ = originalPositions[i * 3 + 2];
+                        
+                        // Calculate distance from mouse in 3D space
+                        const distToMouse = new THREE.Vector2(
+                            x - mouseIntersect.x,
+                            y - mouseIntersect.y
+                        ).length();
+                        
+                        // Apply interactive effect based on distance
+                        if (distToMouse < 0.8) {
+                            // Create a repulsion effect
+                            const strength = 1 - (distToMouse / 0.8);
+                            const angle = Math.atan2(y - mouseIntersect.y, x - mouseIntersect.x);
+                            
+                            const forceMagnitude = 0.002 * strength;
+                            const forceX = forceMagnitude * Math.cos(angle);
+                            const forceY = forceMagnitude * Math.sin(angle);
+                            
+                            // Update position with force
+                            positions.setX(i, x + forceX);
+                            positions.setY(i, y + forceY);
+                            
+                            // Add a subtle upward motion
+                            positions.setZ(i, z + 0.001 * strength);
+                        } else {
+                            // Return to original orbit position with natural movement
+                            // Calculate distance from original position
+                            const distX = x - origX;
+                            const distY = y - origY;
+                            const distZ = z - origZ;
+                            const distFromOrig = Math.sqrt(distX*distX + distY*distY + distZ*distZ);
+                            
+                            if (distFromOrig > 0.001) {
+                                // Calculate return speed based on distance
+                                const returnSpeed = Math.min(0.1, distFromOrig * 0.05);
+                                
+                                // Smoothly return to original position with easing
+                                positions.setX(i, x - distX * returnSpeed);
+                                positions.setY(i, y - distY * returnSpeed);
+                                positions.setZ(i, z - distZ * returnSpeed);
+                            } else {
+                                // Resume natural orbital motion once close to original position
+                                const distance = Math.sqrt(x * x + y * y);
+                                const angle = Math.atan2(y, x);
+                                
+                                // Apply very subtle orbital motion
+                                const orbitalSpeed = 0.005 / (distance + 0.1); // very reduced speed
+                                const newAngle = angle + delta * orbitalSpeed;
+                                
+                                // Extremely subtle pulsing
+                                const pulsePhase = angle * 3 + elapsedTime * 0.1; 
+                                const pulseAmount = 0.0003 * Math.sin(pulsePhase);
+                                const newDistance = distance + pulseAmount;
+                                
+                                positions.setX(i, Math.cos(newAngle) * newDistance);
+                                positions.setY(i, Math.sin(newAngle) * newDistance);
+                                positions.setZ(i, origZ + (Math.sin(elapsedTime * 0.5 + i) * 0.0001));
+                            }
+                        }
+                    }
+                    
+                    // Mark positions for update
+                    positions.needsUpdate = true;
+                }
+            });
+
             rendererRef.current.render(sceneRef.current, cameraRef.current);
             requestRef.current = requestAnimationFrame(animate);
         };
@@ -1039,6 +1236,19 @@ const EyeVisualization = ({ className, style }) => {
             targetScrollYRef.current += event.deltaY * 0.01;
             // Clamp scroll value between 0 and 100 
             targetScrollYRef.current = Math.max(0, Math.min(100, targetScrollYRef.current));
+        };
+
+        // Handle mouse movement
+        const handleMouseMove = (event) => {
+            // Get canvas-relative coordinates
+            if (!containerRef.current) return;
+            
+            const rect = containerRef.current.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / containerRef.current.clientWidth) * 2 - 1;
+            const y = -((event.clientY - rect.top) / containerRef.current.clientHeight) * 2 + 1;
+            
+            setMousePosition({ x, y });
+            mouseVector.current.set(x, y);
         };
 
         // Handle window resize
@@ -1060,6 +1270,7 @@ const EyeVisualization = ({ className, style }) => {
         // Add event listeners
         window.addEventListener('wheel', handleWheel);
         window.addEventListener('resize', handleResize);
+        window.addEventListener('mousemove', handleMouseMove);
 
         // Cleanup function
         return () => {
@@ -1071,6 +1282,7 @@ const EyeVisualization = ({ className, style }) => {
 
             window.removeEventListener('wheel', handleWheel);
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('mousemove', handleMouseMove);
 
             if (requestRef.current) {
                 cancelAnimationFrame(requestRef.current);

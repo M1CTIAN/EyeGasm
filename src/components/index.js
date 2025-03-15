@@ -6,3 +6,4 @@ export { default as TestimonialsSection } from './TestimonialsSection';
 export { default as ContactSection } from './ContactSection';
 export { default as Footer } from './Footer';
 export { default as EyeVisualizationPage } from './EyeVisualizationPage';
+export { default as IntegratedHeroSection } from './IntegratedHeroSection';

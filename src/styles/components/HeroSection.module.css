@@ -1,0 +1,230 @@
+.hero-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  color: white;
+}
+
+.eye-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.hero-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.05s ease-out;
+}
+
+.hero-text-container {
+  max-width: 1200px;
+  text-align: center;
+  padding: 0 2rem;
+}
+
+.hero-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: 0.05em;
+  text-shadow: 
+    0 0 10px rgba(0, 200, 255, 0.5),
+    0 0 20px rgba(0, 100, 255, 0.3),
+    0 0 30px rgba(0, 50, 255, 0.1);
+  background: linear-gradient(to bottom, #ffffff, #88ddff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-letter {
+  display: inline-block;
+  position: relative;
+}
+
+.hero-subtitle {
+  font-family: 'Quicksand', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 300;
+  margin: 1.5rem 0 3rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 0 10px rgba(0, 150, 255, 0.7);
+}
+
+.hero-cta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.primary-button, .secondary-button {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.primary-button {
+  background: linear-gradient(45deg, #3498db, #2ecc71);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
+}
+
+.secondary-button {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.primary-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(0, 150, 255, 0.6);
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
+.hero-scrolling-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.hero-scrolling-indicator:hover {
+  opacity: 1;
+}
+
+.scroll-text {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-family: 'Quicksand', sans-serif;
+  letter-spacing: 1px;
+}
+
+.scroll-icon {
+  width: 30px;
+  height: 50px;
+  border: 2px solid white;
+  border-radius: 25px;
+  position: relative;
+}
+
+.scroll-icon::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollAnimation 2s infinite;
+}
+
+.iris-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  background: radial-gradient(
+    circle at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.3) 60%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  pointer-events: none;
+}
+
+.pulse-button {
+  position: relative;
+}
+
+.pulse-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50px;
+  background: inherit;
+  opacity: 0.8;
+  z-index: -1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes scrollAnimation {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Media queries for better responsiveness */
+@media (max-width: 768px) {
+  .hero-cta {
+    flex-direction: column;
+    gap: 1rem;
+    width: 80%;
+    margin: 2rem auto 0;
+  }
+  
+  .hero-subtitle {
+    margin: 1rem 0 1.5rem;
+  }
+}

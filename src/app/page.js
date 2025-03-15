@@ -3,21 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './page.module.css';
 
-// Import all components
-import {
-    EyeVisualizationPage,
-    LoadingScreen,
-    HeroSection,
-    ParallaxSection,
-    FeaturesSection,
-    TestimonialsSection,
-    ContactSection,
-    Footer
-} from '../components';
+// Import the original HeroSection component instead
+import HeroSection from '../components/HeroSection';
+import { IntegratedHeroSection,LoadingScreen, ParallaxSection, FeaturesSection, Footer } from '../components';
 
 export default function Page() {
     const scrollRef = useRef(null);
     const [loading, setLoading] = useState(true);
+    const [scrollProgress, setScrollProgress] = useState(0);
 
     useEffect(() => {
         // Simulate loading time and then hide the loader
@@ -40,6 +33,12 @@ export default function Page() {
                 tablet: {
                     smooth: true
                 }
+            });
+
+            // Track scroll progress and pass to components that need it
+            scroll.on('scroll', (instance) => {
+                const progress = instance.scroll.y;
+                setScrollProgress(progress);
             });
 
             // Update scroll on window resize
@@ -68,13 +67,12 @@ export default function Page() {
 
     return (
         <div className={styles.container} data-scroll-container ref={scrollRef}>
-            <HeroSection />
-
-            {/* Eye visualization - static section */}
-            <section data-scroll-section>
-                <EyeVisualizationPage />
+            {/* Use original HeroSection */}
+            <section data-scroll-section className={styles.heroSection}>
+                <IntegratedHeroSection />
             </section>
 
+            {/* Content sections */}
             <ParallaxSection
                 id="gallery"
                 backgroundImage="/Fronalpstock_big.jpg"
@@ -104,8 +102,6 @@ export default function Page() {
                 titleScrollSpeed="2"
                 subtitleScrollSpeed="1"
             />
-
-            {/* <ContactSection /> */}
 
             <Footer />
         </div>
